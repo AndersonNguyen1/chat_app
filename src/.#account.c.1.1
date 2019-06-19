@@ -1,0 +1,82 @@
+#include "account.h"
+
+char *ask_account(char *str, int i) {
+	char username[50], password[50];
+
+	/*Ask username and password*/
+	printf("Please type in username: ");
+	scanf("%s", username);
+
+	printf("Please type in password: ");
+	scanf("%s", password);
+
+	if(i == 0){
+	strcpy(str, "CR");
+	}
+	else {
+	strcpy(str, "LG");
+	}
+	strcat(str, "*");
+	strcat(str, username);
+	strcat(str, "$");
+	strcat(str, password);
+
+	return str;
+}
+
+void create_account(char *str) {
+	FILE *f;
+	char *first, *second, word[50];
+	int length;
+
+	first = strstr(str, "*");
+	first++;
+	second = strstr(str, "$");
+	second++;
+
+	length = (second - first) - 1;
+	strncpy(word, first, length);
+	word[length] = 0;
+	f = fopen(word, "w");
+
+	strcpy(word, second);
+	word[strlen(word)] = 0;
+	fprintf(f, "%s\n", word);
+
+	fclose(f);
+}
+
+char *login_account(char *str) {
+	FILE *f;
+	char username[50], password[50], *first, *second, actual_password[50];
+        int length, password_len;
+	
+	first = strstr(str, "*");
+        first++;
+        second = strstr(str, "$");
+        second++;
+
+        length = (second - first) - 1;
+        strncpy(username, first, length);
+	username[length] = 0;
+	strcpy(password, second);
+	password_len = strlen(password);
+	password[password_len] = '\n';
+	password[++password_len] = 0;
+
+	strcpy(str, "Login was successful");
+
+	f = fopen(username, "r");
+	if(f == NULL) {
+		strcpy(str, "Login was unsuccessful");
+		return str;
+	}
+
+	fgets(actual_password, 100, f);
+	actual_password[strlen(actual_password)] = 0;
+	if(strcmp(actual_password, password) != 0) {
+		strcpy(str, "Login was unsuccessful");
+	}
+
+	return str;
+}

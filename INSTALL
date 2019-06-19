@@ -1,0 +1,7 @@
+System Requirements:
+Linux environment kernel number 2.6.32-696.18.7.el6.x86_64 Release 6.9
+
+System Setup and Configuration
+In order to setup the Chat program, type in tar -xvzf (directory and file name). If you download the source code package, type "make all" and then run the executable file located in the bin directory. If you download the customer package, immediately begin running the executable file in bin directory.
+Tip: Please refer to user Manual or Software spec for more detailed installation instructions, as well as how to uninstall.
+

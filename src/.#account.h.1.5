@@ -1,0 +1,30 @@
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifndef ACCOUNT_H
+#define ACCOUNT_H
+
+char *ask_account(char *str, int i);
+
+int create_account(char *str);
+
+char *login_account(char *str);
+
+char *ask_friend(char *str);
+
+char *ask_user(char *str);
+
+int add_friend(char *str);
+
+char *access_friends(char *str, char *friends);
+
+int block_user(char *str);
+
+/*typedef char string[50] STRING;
+
+typedef struct user {
+	STRING friend_list[50];
+}*/
+
+#endif

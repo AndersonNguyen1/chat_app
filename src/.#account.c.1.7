@@ -1,0 +1,278 @@
+#include "account.h"
+
+char *ask_account(char *str, int i) {
+	char username[50], password[50];
+	int l;
+	strncpy(username, "", 49);
+	strncpy(password, "", 49);
+	/*Ask username and password*/
+	printf("Please type in username: ");
+	fgets(username, sizeof(username), stdin);
+	l = strlen(username);
+	if(username[l-1]=='\n')
+	{
+		username[--l] = 0;
+	}
+	printf("Please type in password: ");
+	fgets(password,sizeof(password), stdin);
+
+        l = strlen(password);
+        if(password[l-1]=='\n')
+        {
+                password[--l] = 0;
+        }
+
+	if(i == 0){
+	strcpy(str, "CR");
+	}
+	else {
+	strcpy(str, "LG");
+	}
+	strcat(str, "*");
+	strcat(str, username);
+	strcat(str, "$");
+	strcat(str, password);
+	return str;
+}
+
+int create_account(char *str) {
+	FILE *f;
+	char *first, *second, word[50];
+	int length;
+
+	first = strstr(str, "*");
+	first++;
+	second = strstr(str, "$");
+	second++;
+
+	length = (second - first) - 1;
+	strncpy(word, first, length);
+	word[length] = 0;
+	/*If an account with the same username already exists, prevent account creation and return a fail*/	
+	f = fopen(word, "r");
+	if(f){
+		fclose(f);
+		return 0;
+	}
+	f = fopen(word, "w");
+	/*Create ac account with username and store password in the account file*/
+	strncpy(word, "", 49);
+	strcpy(word, second);
+	word[strlen(word)] = 0;
+	fprintf(f, "%s\n", word);
+
+	fclose(f);
+	return 1;
+}
+
+char *login_account(char *str) {
+	FILE *f;
+        char username[50], password[50], *first, *second, actual_password[50], friend[50];
+        int length, password_len, done = 0, count = 0;
+	strncpy(password, "", 49);
+	strncpy(username, "", 49);
+	strncpy(friend, "", 49);
+	strncpy(actual_password, "", 49);
+	/*Find the identifiers/location of the username and password*/
+        first = strstr(str, "*");
+        first++;
+        second = strstr(str, "$");
+        second++;
+	/*Using the identifiers, copy the username and password onto strings*/
+        length = (second - first) - 1;
+        strncpy(username, first, length);
+        username[length] = 0;
+        strcpy(password, second);
+        password_len = strlen(password);
+        password[password_len] = '\n';
+        password[++password_len] = 0;
+	/*Default success message.  The username is added at the end*/
+        strcpy(str, "Login was successful");
+        strcat(str, username);
+	/*Open file with username.  If file doen't exist, return unsuccessful login*/
+        f = fopen(username, "r");
+        if(f == NULL) {
+                strcpy(str, "Login was unsuccessful");
+		str[strlen(str)] = 0;
+                return str;
+        }
+	/*Get password in file.  If passwords do not match up, return unsuccessful login*/
+        fgets(actual_password, 100, f);
+        actual_password[strlen(actual_password)] = 0;
+        if(strcmp(actual_password, password) != 0) {
+                strcpy(str, "Login was unsuccessful");
+		str[strlen(str)] = 0;
+		return str;
+        }
+	/*Add list of friends to the return string*/
+	while(!done) {
+		if(!count) {
+			strcat(str, "%");
+		}
+		else {
+			if(fgets(friend, 49, f)) {
+			strcat(str, friend);
+			}
+			else {
+			str[strlen(str)] = 0;
+			break;
+			}
+		}
+		count++;
+	}
+
+        fclose(f);
+
+        return str;
+}
+
+char *ask_friend(char *str) {
+        char friend[50];
+
+        printf("Please enter the username of the person you would like to befriend:\n");
+        fgets(friend,sizeof(friend),stdin);
+ 	int l;	
+        l = strlen(friend);
+        if(friend[l-1]=='\n')
+        {
+                friend[--l] = 0;
+        }
+
+        strcpy(str, "AD");
+        strcat(str, "*");
+        strcat(str, friend);
+
+        return str;
+}
+
+char *ask_user(char *str) {
+	char friend[50];
+
+	printf("Please enter the username of the person you would like to block:\n");
+	fgets(friend,sizeof(friend), stdin);
+	int l;
+	l = strlen(friend);
+	if(friend[l-1] == '\n')
+	{
+		friend[--l] = 0;
+	}
+
+	strcpy(str, "BL");
+	strcat(str, "*");
+	strcat(str, friend);
+
+	return str;
+}
+
+int add_friend(char *str) {
+        FILE *f, *f2;
+        char username[50], friend[50], *first, *second;
+        int length;
+	strncpy(username, "", 49);
+	strncpy(friend, "", 49);
+
+        first = strstr(str, "*");
+        first++;
+        second = strstr(str, "$");
+        second++;
+
+        length = (second - first) - 1;
+        strncpy(friend, first, length);
+        friend[length] = 0;
+        strcpy(username, second);
+        username[strlen(username)] = 0;
+
+	/*Determine if target friend account even exists*/
+        f2 = fopen(friend, "r");
+        if(f2 == NULL) {
+                return 0;
+	}
+	fclose(f2);
+
+	/*Add user to list of friends to target account*/
+	f2 = fopen(friend, "a");
+	fprintf(f2, "%s\n", username);
+	fclose(f2);
+	/*Add target account to user's list of friends*/
+        f = fopen(username, "a");
+        fprintf(f, "%s\n", friend);
+        fclose(f);
+
+        return 1;
+}
+
+char *access_friends(char *str, char *friends) {
+	char friend[50], username[50];
+	FILE *f;
+	int done = 0, count = 0;
+
+	strncpy(username, "", 49);
+	strcpy(username, str);
+
+	f = fopen(username, "r");
+
+	/*Add list of friends to the return string*/
+        while(!done) {
+                if(!count) {
+                        fgets(friend, 49, f);
+                }
+                else {
+                        if(fgets(friend, 49, f)) {
+				/*If its the first friend*/
+				if(count == 1) {
+				strcpy(friends, friend);
+				}
+				else {
+                        	strcat(friends, friend);
+				}
+                        }
+                        else {
+                        str[strlen(str)] = 0;
+                        break;
+                        }
+                }
+                count++;
+        }
+
+        fclose(f);
+
+        return friends;
+}
+
+int block_user(char *str) {
+	FILE *f, *f2;
+	char friend[50], username[50], *first, *second;;
+	int length;
+	strncpy(username, "", 49);
+	strncpy(username, "", 49);
+
+        first = strstr(str, "*");
+        first++;
+        second = strstr(str, "$");
+        second++;
+
+        length = (second - first) - 1;
+        strncpy(friend, first, length);
+        friend[length] = 0;
+        strcpy(username, second);
+        username[strlen(username)] = 0;
+
+        /*Determine if target user account even exists*/
+        f2 = fopen(friend, "r");
+        if(f2 == NULL) {
+                return 0;
+        }
+        fclose(f2);
+	
+	/* blocks user and adds them to a list */
+	f2 = fopen(friend, "a");
+	fprintf(f2, "%s\n", username);
+	fclose(f2);
+	
+	/* adds target account to user's list of blocked users */
+	f = fopen(username, "a");
+	fprintf(f, "%s\n", friend);
+	fclose(f);
+
+	return 1;	
+}
